@@ -3,7 +3,9 @@ import json
 import asyncio
 import re
 
+
 class PneumaClient(discord.Client):
+    """Child discord client class for managing Pneuma Bot"""
 
     def __init__(self, configs):
         super().__init__()
@@ -21,6 +23,7 @@ class PneumaClient(discord.Client):
             loop.stop()
             print('Bot has Disconnected')
 
+
     async def update_data(self):
         self.emoji_update()
         await self.update_core()
@@ -35,10 +38,13 @@ class PneumaClient(discord.Client):
         if message.channel.id == self.configs["Admin Channel"]:
 
             if message.content.startswith('!add'):
+                # Adds new role and emoji pairing
+                # !add Name #Channel :emoji:
                 msg = message.content
                 channel_block = re.search(r'!add [a-zA-Z0-9]+', msg)
                 role_block = re.search(r'<@&[0-9]+>', msg)
                 emoji_block = re.search(r'<:[a-zA-Z0-9_]+:[0-9]+>', msg)
+
                 if channel_block is None: 
                     await self.admin_chan.send('Cant find name')
                     return
@@ -48,6 +54,7 @@ class PneumaClient(discord.Client):
                 if emoji_block is None:
                     await self.admin_chan.send('Cant find Emoji')
                     return
+
                 channel = channel_block.group().replace('!add ', '')
                 role_id = re.search('[0-9]+', role_block.group()).group()
                 emoji_id = re.search(':[0-9]+>', emoji_block.group()).group()
@@ -58,7 +65,6 @@ class PneumaClient(discord.Client):
                 except (discord.errors.NotFound):
                     await self.admin_chan.send('Emoji not found on this server')
                     return
-
 
                 msg = 'Add Channel {0} for role {1} using emoji {2}?'.format(
                     channel_block.group(), 
@@ -140,44 +146,39 @@ class PneumaClient(discord.Client):
     async def find_core(self):
         try:
             # Gets the main message and deletes the rest
-            msg = await self.command_chan.fetch_message(
+            self.core_message = await self.command_chan.fetch_message(
                 self.configs['Main Message ID']
             )
             
-            # Deletes all extra messages
-            def check_msg(m):
-                return m.id != msg.id
-            await self.command_chan.purge(limit=100, check=check_msg)
-
-            # Saves core message
-            self.core_message = msg
-
-            # Update core
-            await self.update_core()
-
         except discord.NotFound:
-            await self.start_core()
-            await self.find_core()
+            # Creates message if not found
+            core = await self.command_chan.send('<temp>')
+            self.configs['Main Message ID'] = core.id
+            msg = '<@!93172449562066944> update the configs on heroku'
+            await self.admin_chan.send(msg)
+            self.core_message = core
 
+        # Deletes all extra messages
+        def check_msg(m):
+            return m.id != msg.id
+        await self.command_chan.purge(limit=100, check=check_msg)
 
-    async def start_core(self):
-        # Sends the core message and assigns it on internal values
-        core = await self.command_chan.send('IM')
-        self.configs['Main Message ID'] = core.id
-        msg = '<@!93172449562066944> update the configs on heroku'
-        await self.admin_chan.send(msg)
-        self.core_message = core
+        # Update core
+        await self.update_core()
 
 
     async def update_core(self):
+        # Edits core message with new embeds
         msg = self.configs['MSGs']['Core Message']
         embed = discord.Embed(
             title='**Hello!**', 
             description=msg, 
             color=0x17f0d6
         )
+
         emojis = []
         embed_count = 0
+
         for chan, IDs in self.configs['Channels'].items():
             if chan != 'AAAAA':
                 emoji_ID = IDs[1]
@@ -197,11 +198,13 @@ class PneumaClient(discord.Client):
 
         embed.set_footer(text=self.configs['MSGs']['Core Footer'])
         await self.core_message.edit(content='', embed=embed)
+
         for emoji in emojis:
             await self.core_message.add_reaction(emoji)
 
 
     def emoji_update(self):
+        # Update internal emoji list
         for chan, IDs in self.configs['Channels'].items():
             self.emoji_to_channel[IDs[1]] = chan
 
@@ -218,11 +221,12 @@ class PneumaClient(discord.Client):
         print(self.user.id)
         print('=' * 5)
 
+
     async def on_error(self, event, *args, **kwargs):
+        # Pings me in admin channel there was an error
         await super().on_error(event, *args, **kwargs)
         msg = '<@!93172449562066944> there was an error!'
         await self.admin_chan.send(msg)
-
 
 
 configs = {}
