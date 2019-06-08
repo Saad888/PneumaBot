@@ -41,7 +41,7 @@ class PneumaClient(discord.Client):
                 # Adds new role and emoji pairing
                 # !add Name #Channel :emoji:
                 msg = message.content
-                channel_block = re.search(r'!add [a-zA-Z0-9]+', msg)
+                channel_block = re.search(r'!add [a-zA-Z0-9_\- ]+[a-zA-Z0-9_\-]', msg)
                 role_block = re.search(r'<@&[0-9]+>', msg)
                 emoji_block = re.search(r'<:[a-zA-Z0-9_]+:[0-9]+>', msg)
 
