@@ -160,7 +160,7 @@ class PneumaClient(discord.Client):
 
         # Deletes all extra messages
         def check_msg(m):
-            return m.id != msg.id
+            return m.id != self.core_message.id
         await self.command_chan.purge(limit=100, check=check_msg)
 
         # Update core
@@ -192,6 +192,8 @@ class PneumaClient(discord.Client):
                 embed_count += 1
         
         pad_count = (3 - embed_count % 3) % 3
+        if pad_count == 2: 
+            pad_count = 0
 
         for i in range(pad_count):
             embed.add_field(name='-', value='-', inline=True)
