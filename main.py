@@ -116,6 +116,7 @@ class PneumaClient(discord.Client):
         if result is not None:
             role, user = result
             await user.add_roles(role)
+            await self.admin_chan.send(f'{user.mention} added to {role.name}')
 
 
     async def on_raw_reaction_remove(self, payload):
@@ -123,6 +124,7 @@ class PneumaClient(discord.Client):
         if result is not None:
             role, user = result
             await user.remove_roles(role)
+            await self.admin_chan.send(f'{user.mention} removed from {role.name}')
 
 
     def role_from_react(self, payload):
