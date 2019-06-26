@@ -30,10 +30,43 @@ class PneumaClient(discord.Client):
         msg = '<@!93172449562066944> update the configs on heroku'
         await self.admin_chan.send(msg)
 
+    def pinged(self, message):
+        ping = f'<@{self.user.id}>'
+        return message.find(ping) > -1
+
+
+    async def change_server_loc(self, guild, request=''):
+        target = ''
+        if request.find('central') > -1:
+            target = discord.VoiceRegion.us_central
+        elif request.find('east') > -1:
+            target = discord.VoiceRegion.us_east
+        elif request.find('west') > -1:
+            target = discord.VoiceRegion.us_west
+        elif request.find('south') > -1:
+            target = discord.VoiceRegion.us_south
+        else:
+            server_locations = [
+                discord.VoiceRegion.us_central, 
+                discord.VoiceRegion.us_east,
+                discord.VoiceRegion.us_south,
+                discord.VoiceRegion.us_west, 
+                discord.VoiceRegion.us_central  
+            ]
+            current = guild.region
+            index = server_locations.index(current) + 1
+            target = server_locations[index]
+        await guild.edit(region=target)
+        return target
 
     async def on_message(self, message):
         if message.author == self.user:
             return
+
+        if self.pinged(message.content):
+            if message.content.find('change server') > -1:
+                m = await self.change_server_loc(message.guild, message.content)
+                await message.channel.send(f'Location changed to {m}!')
 
         if message.channel.id == self.configs["Admin Channel"]:
 
@@ -168,6 +201,8 @@ class PneumaClient(discord.Client):
         # Update core
         await self.update_core()
 
+        # Send command list
+
 
     async def update_core(self):
         # Edits core message with new embeds
@@ -199,6 +234,12 @@ class PneumaClient(discord.Client):
 
         for i in range(pad_count):
             embed.add_field(name='-', value='-', inline=True)
+
+        embed.add_field(
+            name='Server Location Change', 
+            value=self.configs['MSGs']['Server Change'], 
+            inline=False
+        )
 
         embed.set_footer(text=self.configs['MSGs']['Core Footer'])
         await self.core_message.edit(content='', embed=embed)
