@@ -5,6 +5,7 @@
 - Embed maker
 - Server join role and message set
 - Copypasta 
-- Timer reminder
+- Resource organizer
+- Timer reminder (?)
 - Twtich clipper (?)
 - Soundboard (?)
