@@ -274,10 +274,11 @@ class PneumaClient(discord.Client):
         await self.admin_chan.send(msg)
 
 
-configs = {}
-with open('configs.json', 'r') as file:
-    configs = json.loads(file.read())
+if __name__ == "__main__":
+    configs = {}
+    with open('configs.json', 'r') as file:
+        configs = json.loads(file.read())
 
-print('Loading Bot')
-bot = PneumaClient(configs)
-print('Shut down')
+    print('Loading Bot')
+    bot = PneumaClient(configs)
+    print('Shut down')
