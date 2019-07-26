@@ -2,13 +2,31 @@ import discord
 import json
 import asyncio
 import re
+import os
+from S3Requests import S3BucketClient
 
 
 class PneumaClient(discord.Client):
     """Child discord client class for managing Pneuma Bot"""
 
-    def __init__(self, configs):
+    def __init__(self, S3Creds):
         super().__init__()
+        print('Connecting to S3 Services to Aquire Configs')
+        self.S3_client = S3BucketClient(
+            S3Creds['AWS_IAM_KEY'],
+            S3Creds['AWS_IAM_ID'],  
+            S3Creds['Bucket'], 
+            S3Creds['Folder'], 
+            S3Creds['Region']
+        )
+        loop = asyncio.get_event_loop()
+
+        print('Aquiring and processing configs from S3')
+        configsraw = loop.run_until_complete(
+            self.S3_client.get_raw_request('configs.json')  
+        )
+        configs = json.loads(configsraw)
+        print('Configs loaded, intiating bot...')
         self.configs = configs
         self.token = self.configs["Token"]
         self.admin_chan = None
@@ -25,9 +43,13 @@ class PneumaClient(discord.Client):
 
 
     async def update_data(self):
+        """Update configs on S3"""
+        
         self.emoji_update()
         await self.update_core()
-        msg = '<@!93172449562066944> update the configs on heroku'
+        configs_raw = json.dumps(self.configs)
+        await self.S3_client.send_raw_request(configs_raw, 'configs.json')
+        msg = '<@!93172449562066944> configs updated, please verify'
         await self.admin_chan.send(msg)
 
     def pinged(self, message):
@@ -275,10 +297,11 @@ class PneumaClient(discord.Client):
 
 
 if __name__ == "__main__":
-    configs = {}
-    with open('configs.json', 'r') as file:
-        configs = json.loads(file.read())
 
+    S3Credentials = {}
+    path = os.path.join(os.path.dirname(__file__), 'S3Credentials.json')
+    with open(path, 'r') as file:
+        S3Credentials = json.loads(file.read())
     print('Loading Bot')
-    bot = PneumaClient(configs)
+    bot = PneumaClient(S3Credentials)
     print('Shut down')
