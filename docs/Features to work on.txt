@@ -1,0 +1,11 @@
+- Audit Log
+	- Message delete/edit
+	- Nickname change
+	- Server join/leave
+- Embed maker
+- Server join role and message set
+- Copypasta 
+- Resource organizer
+- Timer reminder (?)
+- Twtich clipper (?)
+- Soundboard (?)
