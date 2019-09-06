@@ -1,3 +1,4 @@
+- S3 implementation
 - Audit Log
 	- Message delete/edit
 	- Nickname change
