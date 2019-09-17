@@ -287,6 +287,8 @@ class PneumaClient(discord.Client):
         print(self.user.name)
         print(self.user.id)
         print('=' * 5)
+        game = discord.Game('MHW Iceborne (PS4)')
+        await self.change_presence(activity=game)
 
 
     async def on_error(self, event, *args, **kwargs):
